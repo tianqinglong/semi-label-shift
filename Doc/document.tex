@@ -1,0 +1,272 @@
+\documentclass[12pt]{article}
+\usepackage{latexsym}
+\usepackage{amsthm}
+\usepackage{amsmath,amssymb,amsfonts,bm,amsbsy,bbm}
+\usepackage{epsfig}
+\usepackage{graphicx,rotating,lscape}
+\usepackage{verbatim}
+\usepackage{natbib}
+\usepackage{multirow,color}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{subfigure}
+\usepackage{float}
+\usepackage{physics}
+
+\geometry{left=0.6in,right=0.6in,top=0.6in,bottom=0.6in}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{proposition}{Proposition}
+\newtheorem{example}{Example}
+\newtheorem{condition}{Condition}
+\newtheorem{remark}{Remark}
+\newtheorem{assumption}{Assumption}
+
+\DeclareMathOperator{\sign}{sgn}
+
+\def\A{{\bf A}}
+\def\a{{\bf a}}
+\def\B{{\bf B}}
+\def\b{{\bf b}}
+\def\C{{\bf C}}
+\def\c{{\bf c}}
+\def\D{{\bf D}}
+\def\d{{\bf d}}
+\def\e{{\bf e}}
+\def\G{{\bf G}}
+\def\g{{\bf g}}
+\def\H{{\bf H}}
+\def\h{{\bf h}}
+\def\I{{\bf I}}
+\def\M{{\bf M}}
+\def\m{{\bf m}}
+\def\Q{{\bf Q}}
+\def\R{{\bf R}}
+\def\S{{\bf S}}
+\def\s{{\bf s}}
+\def\T{{\bf T}}
+\def\t{{\bf t}}
+\def\U{{\bf U}}
+\def\u{{\bf u}}
+\def\V{{\bf V}}
+\def\v{{\bf v}}
+\def\W{{\bf W}}
+\def\w{{\bf w}}
+\def\X{{\bf X}}
+\def\x{{\bf x}}
+\def\Y{{\bf Y}}
+\def\y{{\bf y}}
+\def\Z{{\bf Z}}
+\def\z{{\bf z}}
+
+\def\calS{{\cal S}}
+\def\calT{{\cal T}}
+\def\calM{{\cal M}}
+
+\def\ba{{\boldsymbol\alpha}}
+\def\bb{{\boldsymbol\beta}}
+\def\bg{\boldsymbol\gamma}
+\def\bd{{\boldsymbol\delta}}
+\def\bt{{\boldsymbol\theta}}
+\def\bphi{\boldsymbol\phi}
+\def\bmu{\boldsymbol\mu}
+\def\btau{\boldsymbol\tau}
+\def\bnu{\boldsymbol\nu}
+\def\beps{\boldsymbol\epsilon}
+\def\bta{\boldsymbol\eta}
+\def\bl{\boldsymbol\lambda}
+\def\bk{\boldsymbol\kappa}
+\def\bpsi{\boldsymbol\psi}
+\def\bxi{\boldsymbol\xi}
+\def\bOmega{{\boldsymbol\Omega}}
+
+\def\0{{\bf 0}}
+\def\trans{^{\rm T}}
+\def\pr{\hbox{pr}}
+\def\wh{\widehat}
+\def\wt{\widetilde}
+\def\wc{\widecheck}
+\def\N{{\rm N}}
+\def\th{^{th}}
+\def\var{\hbox{var}}
+\def\cov{\hbox{cov}}
+\def\cor{\hbox{cor}}
+\def\eff{_{\rm eff}}
+\def\opt{_{\rm opt}}
+\def\sub{{\rm sub}}
+\def\cat{{\rm cat}}
+\def\alt{_{\rm alt}}
+\def\n{\nonumber}
+\def\dim{\mbox{dim}}
+\def\MSE{\mbox{MSE}}
+\def\rank{\mbox{rank}}
+\def\vec{\mbox{vec}}
+\def\argmin{\mbox{argmin}}
+\def\argmax{\mbox{argmax}}
+\def\diag{\mbox{diag}}
+\def\tr{\mbox{trace}}
+\def\dist{\hbox{dist}}
+\def\dim{\hbox{dim}}
+\def\Normal{\hbox{Normal}}
+\def\ccdot{{\bullet}}
+\def\log{{\rm log}}
+\def\bias{\hbox{bias}}
+
+\def\bse{\begin{eqnarray*}}
+	\def\ese{\end{eqnarray*}}
+\def\be{\begin{eqnarray}}
+	\def\ee{\end{eqnarray}}
+\def\bsq{\begin{equation*}}
+	\def\esq{\end{equation*}}
+\def\bq{\begin{equation}}
+	\def\eq{\end{equation}}
+
+\newcommand{\Eone}{E_1}
+\newcommand{\Ezero}{E_0}
+
+\def\fry{f_{R\mid Y}}
+\def\fxyr{f_{\X\mid Y,R}}
+\def\fyxrone{f_{Y\mid \X,1}}
+\def\fyr{f_{Y\mid R}}
+\def\fr{f_{R}}
+\def\fy{f_{Y}}
+
+\def\fyx{f_{Y\mid \X}}
+\def\fxy{f_{\X\mid Y}}
+\def\fx{f_{\X}}
+\def\fxrone{f_{\X\mid 1}}
+\def\fone{f_1}
+\def\fzero{f_0}
+
+\def\fryx{f_{R\mid Y, \X}}
+\def\fryu{f_{R\mid Y, \U}}
+\def\fyuz{f_{Y\mid \U,\Z}}
+\def\fuz{f_{\U\mid \Z}}
+\def\fz{f_{\Z}}
+\def\fzu{f_{\Z\mid \U}}
+\def\fzur{f_{\Z\mid \U,R_\U=1}}
+\def\fu{f_{\U}}
+\def\fyu{f_{Y\mid \U}}
+
+\def\sumi{\sum_{i=1}^n}
+\def\sumj{\sum_{j=1}^n}
+\def\sumI{\sum_{i=1}^N}
+\def\sumIP1{\sum_{i=1, i\in P_1}^N}
+\def\sumJ{\sum_{j=1}^N}
+\def\sumK{\sum_{k=1}^N}
+\def\suml{\sum_{l=1}^n}
+\def\sumk{\sum_{k=1}^n}
+\def\prodI{\prod_{i=1}^N}
+\def\prodi{\prod_{i=1}^n}
+
+\def\boxit#1{\vbox{\hrule\hbox{\vrule\kern6pt\vbox{\kern6pt#1\kern6pt}\kern6pt\vrule}\hrule}}
+\def\jiwei#1{\vskip 2mm\boxit{\vskip 2mm{\color{blue}\bf#1} {\color{blue}\bf -- Jiwei\vskip 2mm}}\vskip 2mm}
+\def\qt#1{\vskip 2mm\boxit{\vskip 2mm{\color{red}\bf#1} {\color{red}\bf -- Qinglong\vskip 2mm}}\vskip 2mm}
+
+\newcommand{\jiweizhao}[1]{{\color{blue}{[Jiwei to himself: #1]}}\\}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning,shapes.geometric}
+
+\makeatletter
+\newcommand*{\ind}{%
+	\mathbin{%
+		\mathpalette{\@ind}{}%
+	}%
+}
+\newcommand*{\nind}{%
+	\mathbin{% % The final symbol is a binary math operator
+		\mathpalette{\@ind}{\not}% \mathpalette helps for the adaptation
+		% of the symbol to the different math styles.
+	}%
+}
+\newcommand*{\@ind}[2]{%
+	% #1: math style
+	% #2: empty or \not
+	\sbox0{$#1\perp\m@th$}% box 0 contains \perp symbol
+	\sbox2{$#1=$}% box 2 for the height of =
+	\sbox4{$#1\vcenter{}$}% box 4 for the height of the math axis
+	\rlap{\copy0}% first \perp
+	\dimen@=\dimexpr\ht2-\ht4-.2pt\relax
+	% The equals symbol is centered around the math axis.
+	% The following equations are used to calculate the
+	% right shift of the second \perp:
+	% [1] ht(equals) - ht(math_axis) = line_width + 0.5 gap
+	% [2] right_shift(second_perp) = line_width + gap
+	% The line width is approximated by the default line width of 0.4pt
+	\kern\dimen@
+	{#2}%
+	% {\not} in case of \nindep;
+	% the braces convert the relational symbol \not to an ordinary
+	% math object without additional horizontal spacing.
+	\kern\dimen@
+	\copy0 % second \perp
+}
+\makeatother
+
+\begin{document}
+
+\section*{Simulation Scheme}
+
+The simulation study contains two parts
+\begin{itemize}
+	\item $Y$ is continuous
+	\item $Y$ is binary
+\end{itemize}
+
+\subsection*{Continuous}
+\noindent For the first type (i.e., $Y$ is continuous), we consider the following two cases
+\begin{itemize}
+	\item Linear regression
+	\item Nonlinear regression (tentatively)
+\end{itemize}
+The linear regression setting use Gaussian error terms, and we consider both the correct model and the misspecified model.
+The label shift assumption is that $p(\x|y)$ remains the same, however, deriving the explicit form of $p(\x|y)$ can be difficult.
+For example, for the following model
+\[
+Y\sim X_1+X_2+X_3+X_1X_2+X_1X_3+\epsilon,
+\]
+where $\epsilon\sim\mathrm{Norm}(0,\sigma^2)$.
+Even if $\X$ has a multivariate normal distribution, deriving the closed form expression for $p(\x|y)$ is non-trivial.
+Thus, we used the rejection sampling algorithm to generate samples.
+We need to find a constant $C_{\max}$ such that $\rho(y;\bb)/C_{\max}$ is bounded by $1$.
+Here, we outline the procedure to generate samples from the target distribution as follows,
+\begin{enumerate}
+	\item Generate a sample of $\X=\x$ from the marginal distribution of $p_s(\x)$.
+	\item Given the sample $\X=\x$, generate $Y=y$ using the specified model $p_s(y|\x)$.
+	\item Generate a number $U=u$ from the uniform distribution $\mathrm{U}(0,1)$.
+	\item If $U=u<\rho(y;\bb)/C_{\max}$, accept this pair $(\x,y)$; otherwise reject this pair.
+	\item Repeat the previous steps until accumulate the desired sample size.
+\end{enumerate}
+
+\subsubsection*{Setting~1}
+
+The marginal distribution of $\X=\left(X_1,X_2,X_3\right)\trans$ is
+\[
+\X\sim\mathrm{MVN}\left(\mu,\Sigma\right),
+\]
+where
+\[
+\mu=\begin{bmatrix}
+	0\\
+	0\\
+	0
+\end{bmatrix},\quad
+\Sigma=\begin{bmatrix}
+	1 & 0 & 0\\
+	0 & 1 & 0\\
+	0 & 0 & 1
+\end{bmatrix}.
+\]
+The model $p_s(y|\x)$ is
+\[
+Y=1+2X_1+2X_2+2X_3+X_1X_2+X_2X_3+\epsilon,
+\]
+where $\epsilon\sim\mathrm{Norm}(0,1)$.
+
+\newpage
+\bibliographystyle{agsm}
+\bibliography{ref}
+\end{document}
