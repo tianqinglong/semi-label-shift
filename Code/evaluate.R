@@ -180,7 +180,8 @@ Compute_beta_var <- function(betaRho, dat, xn_t, yx_all)
   for (i in (n+1):(n+m))
   {
     vec <- term1[i,]
-    tempMat <- matrix(vec, nrow = 2, ncol = 1) %*% matrix(vec, nrow = 1, ncol = 2)
+    tempMat <- matrix(vec, nrow = length(betaRho), ncol = 1) %*%
+      matrix(vec, nrow = length(betaRho), ncol = 2)
     tempMat <- tempMat*tauVec[i]*(1-p1)
     SST <- SST+tempMat
   }
