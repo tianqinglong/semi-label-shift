@@ -119,3 +119,16 @@ Generate_Y_Given_X <- function(YX_List, Xt, xyDat)
   
   return(YXOut)
 }
+
+Generate_Dat <- function(n, m, Mu_YX, SigMat_YX, Mu_Y_T, Sig_Y_T)
+{
+  dat <- Generate_Y_X_Marginal(n = n, Mu_YX = Mu_YX, SigMat_YX = SigMat_YX)
+  XY_List <- Compute_X_Given_Y(Mu_YX = Mu_YX, SigMat_YX = SigMat_YX)
+  
+  yTarget <- Generate_Y_Marginal_Target(m = m, Mu_Y_T = Mu_Y_T, Sig_Y_T = Sig_Y_T)
+  xTarget <- Generate_X_Given_Y(yTarget, XY_List)
+  
+  return(list(sDat = dat,
+              tDat = xTarget))
+}
+
