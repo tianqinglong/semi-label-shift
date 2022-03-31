@@ -1,29 +1,25 @@
-source("g_c_1.R")
-source("rej-sample.R")
-source("fit_model.R")
-source("evaluate.R")
+source("data_generating_functions.R")
+source("functions.R")
+
+Mu_YX <- c(2,1,1,1)
+SigMat_YX <- ar1_cor(4, 0.9)
 
 n <- 1000
-m <- 500
-mu <- c(0, 0, 0)
-sigma <- diag(3)*0.8
-beta <- c(1, 0.4, 0.4, 0.4, 0.5, 0.5)
-sd <- 0.75
+m <- 1000
 
-beta_rho <- c(-0.1, 0.05)
+dat <- Generate_Y_X_Marginal(n = n, Mu_YX = Mu_YX, SigMat_YX = SigMat_YX)
+XY_List <- Compute_X_Given_Y(Mu_YX = Mu_YX, SigMat_YX = SigMat_YX)
 
-xn <- gen_x_marginal(1000, mu, sigma)
-yn <- gen_y(xn, beta, sd)
-max_out <- max_rho(yn, beta_rho)
-ac_list <- rej_sample(yn, max_out)
+Mu_Y_T <- 2
+Sig_Y_T <- 1.5
+yTarget <- Generate_Y_Marginal_Target(m = m, Mu_Y_T = Mu_Y_T, Sig_Y_T = Sig_Y_T)
+trueBetaRho <- Compute_Rho_Parameters(Mu_Y_T, Sig_Y_T, Mu_YX, SigMat_YX)
+xTarget <- Generate_X_Given_Y(yTarget, XY_List)
 
-t_samp <- make_target_sample(m, mu, sigma, beta, sd, beta_rho)
-s_samp <- make_source_sample(n, mu, sigma, beta, sd, beta_rho)
+YX_Model_True <- Compute_Y_Given_X(Mu_YX, SigMat_YX)
+YX_Model_Fitted <- Fit_YX_Model_Source(dat)
 
-dat <- s_samp
-xn_t <- t_samp[,-1]
-yx_all <- Generate_sampler(dat, xn_t, B = 1000)
+XY_all <- Generate_Y_Given_X(YX_Model_Fitted, xTarget, dat)
 
-foptim <- optim(c(0, 0.05), Compute_S_eff, dat = dat, xn_t = xn_s, yx_all = yx_all)
-ESS <- Compute_beta_var(foptim$par, dat, xn_t, yx_all)
-solve(ESS)
+beta_rho <- trueBetaRho
+optim(beta_rho, ComputeEquation, yx_all = XY_all, sDat = dat, tDat = xTarget)
