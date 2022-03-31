@@ -88,3 +88,34 @@ Generate_X_Given_Y <- function(YVec, X_Given_Y_List)
   
   return(outMat)
 }
+
+Fit_YX_Model_Source <- function(xyDat)
+{
+  lFit <- lm(Y~., data = as.data.frame(xyDat))
+  SdYX <- sigma(lFit)
+  VarYX <- SdYX^2
+  Beta0 <- coef(lFit)[1]
+  Beta1 <- coef(lFit)[-1]
+  
+  return(list(Beta0 = matrix(Beta0, ncol = 1, nrow = 1),
+              Beta1 = matrix(Beta1, ncol = 1, nrow = length(Beta1)),
+              VarYX = matrix(VarYX, ncol = 1, nrow = 1)))
+}
+
+Generate_Y_Given_X <- function(YX_List, Xt, xyDat)
+{
+  m <- nrow(Xt)
+  
+  Beta0 <- c(YX_List$Beta0)
+  Beta1 <- YX_List$Beta1
+  MuVec <- Beta0+Xt%*%Beta1
+  VarYX <- YX_List$VarYX
+  
+  addTerm <- matrix(rnorm(m, 0, sqrt(VarYX)), ncol = 1)
+  yCol <- MuVec+addTerm
+  colnames(yCol) <- "Y"
+  YXOut <- cbind(yCol, Xt)
+  YXOut <- rbind(xyDat, YXOut)
+  
+  return(YXOut)
+}

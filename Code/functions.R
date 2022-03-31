@@ -18,7 +18,7 @@ E_s_Rho_X <- function(beta_rho, yx_all, rho_pwr)
 E_s_Rho <- function(beta_rho, sDat)
 {
   beta_rho <- matrix(beta_rho, ncol = 1)
-  yn <- sDat[,"y"]
+  yn <- sDat[,"Y"]
   yTempMat <- matrix(c(yn, yn^2), ncol = 2, nrow = length(yn))
   rhoVecSrc <- exp(yTempMat %*% beta_rho)
   return(mean(rhoVecSrc))
@@ -51,7 +51,7 @@ E_t_Tau <- function(sDat, tDat, c_ps, e_s_rho_x, e_s_rho2_x, p1 = -1)
 E_t_d_log_Rho_d_Beta <- function(beta_rho, sDat, c_ps)
 {
   n <- nrow(sDat)
-  yn <- sDat[,"y"]
+  yn <- sDat[,"Y"]
   beta_rho <- matrix(beta_rho, ncol = 1)
   yTempMat <- matrix(c(yn, yn^2), ncol = 2, nrow = n)
   rhoVecSrc <- exp(yTempMat %*% beta_rho)
@@ -138,7 +138,7 @@ ComputeSEff <- function(beta_rho, yx_all, e_s_rho_x, e_s_rho2_x, c_ps, sDat, tDa
   {
     p1 <- n/(n+m)
   }
-  yn <- sDat[,"y"]
+  yn <- sDat[,"Y"]
   
   s_eff_multiplier <- S_Eff_Multiplier(beta_rho, n, m, yn, c_ps, p1)
   b1 <- ComputeB1(beta_rho, yx_all, e_s_rho_x, e_s_rho2_x, c_ps, sDat, tDat, p1)
