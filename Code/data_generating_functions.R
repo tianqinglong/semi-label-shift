@@ -1,3 +1,9 @@
+ar1_cor <- function(n, rho) {
+  exponent <- abs(matrix(1:n - 1, nrow = n, ncol = n, byrow = TRUE) - 
+                    (1:n - 1))
+  rho^exponent
+}
+
 Generate_Y_X_Marginal <- function(n, Mu_YX, SigMat_YX)
 {
   if (length(Mu_YX) != nrow(SigMat_YX))
