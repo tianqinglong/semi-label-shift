@@ -12,7 +12,7 @@ Sig_Y_T <- 1.5
 
 trueBetaRho <- Compute_Rho_Parameters(Mu_Y_T, Sig_Y_T, Mu_YX, SigMat_YX)
 
-n <- 500
+n <- 1000
 m <- 500
 B <- 2000
 
@@ -54,3 +54,10 @@ mclapply(MCDatList, function(datList)
 mc.cores = 12
 ) -> outList
 saveRDS(outList, file = paste("outList_n" , n, "_m", m, ".rds", sep = ""))
+
+##########
+
+source("process_simulations.R")
+filenames <- list.files("../SimuResults/")
+
+Extract_Info(filename = filenames[1], betaRhoTrue = trueBetaRho, isTrue = TRUE)
