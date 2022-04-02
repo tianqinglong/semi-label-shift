@@ -313,6 +313,83 @@ I used $\mathrm{optim}()$ function for simplicity.
 The running time is not fast but not too terrible as each row takes at most a few hours to run on the laptop.
 If we want to run large number of $n$ and $m$, I can write the optimization algorithm instead of using $\mathrm{optim}()$.
 
+\section*{Setting~2: Binary Response}
+
+%Letting the support of $Y$ be either 0 or 1.
+%Then the function $\rho(y;\bb)$ reduces to
+%\[
+%\rho(y;\bb)=\begin{cases}
+%	\beta_0,\quad y=0.\\
+%	\beta_1,\quad y=1.
+%\end{cases}
+%\]
+%Define $\mathrm{C}\equiv\beta_0p_s(0)+\beta_1p_s(1)$, then
+%\[
+%\frac{p_t(i)}{p_s(i)}=\frac{\beta_i}{\mathrm{C}},\quad i=0,1.
+%\]
+%
+%\qt{What we are interested is $\beta_i/\mathrm{C}$ rather than $\beta_i$.
+%When making inference about $\beta_i$, can we directly scale the results by $1/\widehat{\mathrm{C}}$?
+%If not, what we really interested in is the asymptotic variance of $\widehat{\beta}_i/\widehat{\mathrm{C}}$.
+%This question is also applicable to the continuous case.}
+
+\subsection*{Preparations}
+
+We first generate a sample of $(Y,\X)$ from a distribution.
+Then for each observation in this sample, we use a logistic regression model to determine if it belongs to the source or the target distribution.
+We have a joint distribution for $(Y,\X,R)$, and we have
+\[
+\begin{split}
+p\left(Y|\X,R=1\right)=&\frac{p(Y,\X,R=1)}{p(\X,R=1)}\\
+=&\frac{p(R=1|Y,\X)p(Y|\X)p(\X)}{p(\X,Y=1,R=1)+p(\X,Y=0,R=1)}\\
+=&\frac{p(R=1|Y,\X)p(Y|\X)p(\X)}{p(R=1|Y=1)p(Y=1|\X)p(\X)+p(R=1|Y=0)p(Y=0|\X)p(\X)}\\
+=&\frac{\Pr(R=1|Y)\Pr(Y|\X)}{\Pr(R=1|Y=1)\Pr(Y=1|\X)+\Pr(R=1|Y=0)\Pr(Y=0|\X)}.
+\end{split}
+\]
+Letting the ``mixed'' conditional distribution of $Y$ given $\X$ be
+\[
+\Pr(Y=1|\X=\x)=\frac{1}{1+\exp(-\ba\trans\x)},
+\]
+and
+\[
+\Pr(R=1|Y=y)=\frac{1}{1+\exp(-\gamma_0-\gamma_1y)}.
+\]
+Then $\Pr(Y|\X,R=1)$ reduces to
+\[
+\begin{split}
+\Pr(Y=1|\X,R=1)&=\frac{\dfrac{1}{1+\exp(-\gamma_0-\gamma_1)}\dfrac{1}{1+\exp(-\ba\trans\x)}}{\dfrac{1}{1+\exp(-\gamma_0-\gamma_1)}\dfrac{1}{1+\exp(-\ba\trans\x)}+\dfrac{1}{1+\exp(-\gamma_0)}\dfrac{\exp(-\ba\trans\x)}{1+\exp(-\ba\trans\x)}}\\
+&=\frac{1}{1+\dfrac{1+\exp(-\gamma_0-\gamma_1)}{1+\exp(-\gamma_0)}\exp(-\ba\trans\x)}.
+\end{split}
+\]
+If we denote
+\[
+\alpha_0\equiv-\log\left\{\dfrac{1+\exp(-\gamma_0-\gamma_1)}{1+\exp(-\gamma_0)}\right\},
+\]
+then we have
+\[
+\Pr(Y=1|\X,R=1)=\frac{1}{1+\exp(-\alpha_0-\ba\trans\x)},
+\]
+which indicates that to correctly specify the model $p_s(y|\x)$, we can still use the logistic regression.
+
+We are also interested in
+\[
+\begin{split}
+\frac{p_t(y)}{p_s(y)}=&\frac{\Pr(y|R=0)}{\Pr(y|R=1)}=\frac{\Pr(y,R=0)/\Pr(R=0)}{\Pr(y,R=1)/\Pr(R=1)}=\frac{\Pr(R=1)}{\Pr(R=0)}\frac{\Pr(R=0|y)}{\Pr(R=1|y)}\\
+=&\frac{\Pr(R=1)}{\Pr(R=0)}\exp(-\gamma_0)\exp(-\gamma_1y)\equiv\mathrm{C}_0\exp(-\gamma_1y).
+\end{split}
+\]
+Letting $\rho(y;\beta)=\exp(\beta y)$, then we define $\mathrm{C}_1\equiv1/\left\{{\Pr}_{s}(Y=0)+{\Pr}_{s}(Y=1)\exp(\beta)\right\}$.
+Thus, we have
+\[
+\mathrm{C}_0\exp(-\gamma_1 y)-\mathrm{C}_1\exp(\beta y)=0,
+\]
+for $y=0,1$.
+This result indicates that $\beta=-\gamma_1$.
+
+\subsection*{Data Generating Mechanism}
+
+
+
 \newpage
 \bibliographystyle{agsm}
 \bibliography{ref}
