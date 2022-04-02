@@ -206,65 +206,112 @@
 }
 \makeatother
 
+\title{Simulation Report}
+\author{Qinglong Tian}
+\date{updated on \today}
+
 \begin{document}
 
-\section*{Simulation Scheme}
+\maketitle
 
-The simulation study contains two parts
-\begin{itemize}
-	\item $Y$ is continuous
-	\item $Y$ is binary
-\end{itemize}
+\section*{Setting~1}
 
-\subsection*{Continuous}
-\noindent For the first type (i.e., $Y$ is continuous), we consider the following two cases
-\begin{itemize}
-	\item Linear regression
-	\item Nonlinear regression (tentatively)
-\end{itemize}
-The linear regression setting use Gaussian error terms, and we consider both the correct model and the misspecified model.
-The label shift assumption is that $p(\x|y)$ remains the same, however, deriving the explicit form of $p(\x|y)$ can be difficult.
-For example, for the following model
+\subsection*{Data Generating Mechanism}
+
+The joint distribution of $(Y,\X)\in\mathbb{R}^4$ from the \textbf{source} population has a multivariate normal distribution, which is given by
 \[
-Y\sim X_1+X_2+X_3+X_1X_2+X_1X_3+\epsilon,
-\]
-where $\epsilon\sim\mathrm{Norm}(0,\sigma^2)$.
-Even if $\X$ has a multivariate normal distribution, deriving the closed form expression for $p(\x|y)$ is non-trivial.
-Thus, we used the rejection sampling algorithm to generate samples.
-We need to find a constant $C_{\max}$ such that $\rho(y;\bb)/C_{\max}$ is bounded by $1$.
-Here, we outline the procedure to generate samples from the target distribution as follows,
-\begin{enumerate}
-	\item Generate a sample of $\X=\x$ from the marginal distribution of $p_s(\x)$.
-	\item Given the sample $\X=\x$, generate $Y=y$ using the specified model $p_s(y|\x)$.
-	\item Generate a number $U=u$ from the uniform distribution $\mathrm{U}(0,1)$.
-	\item If $U=u<\rho(y;\bb)/C_{\max}$, accept this pair $(\x,y)$; otherwise reject this pair.
-	\item Repeat the previous steps until accumulate the desired sample size.
-\end{enumerate}
-
-\subsubsection*{Setting~1}
-
-The marginal distribution of $\X=\left(X_1,X_2,X_3\right)\trans$ is
-\[
-\X\sim\mathrm{MVN}\left(\mu,\Sigma\right),
+(Y,\X)\trans\sim\mathrm{MVN}(\mu_{Y\X}, \Sigma_{Y\X}),
 \]
 where
 \[
-\mu=\begin{bmatrix}
-	0\\
-	0\\
-	0
-\end{bmatrix},\quad
-\Sigma=\begin{bmatrix}
-	1 & 0 & 0\\
-	0 & 1 & 0\\
-	0 & 0 & 1
-\end{bmatrix}.
+\mu_{Y\X}=(2,1,1,1)\trans,\quad\Sigma_{Y\X}=\begin{bmatrix} 1.44 & 0.9 & 0.81 & 0.729 \\\\ 0.9 & 1.1 & 0.3 & 0.09 \\\\ 0.81 & 0.3 & 1.1 & 0.3 \\\\ 0.729 & 0.09 & 0.3 & 1.1 \end{bmatrix}.
 \]
-The model $p_s(y|\x)$ is
+The condition distribution of $Y$ given $\X$ on the source population is given by
 \[
-Y=1+2X_1+2X_2+2X_3+X_1X_2+X_2X_3+\epsilon,
+p_s(y|\x)\sim\mathrm{Norm}(\alpha_0+\x\trans\ba_1, \sigma^2),
 \]
-where $\epsilon\sim\mathrm{Norm}(0,1)$.
+where
+\[
+\alpha_0=0.422,\quad\ba_1=(0.663, 0.421, 0.494)\trans,\quad\sigma^2=0.142.
+\]
+The conditional distribution of $\X$ given $Y$ is given by
+\[
+p(\x|y)\sim\mathrm{MVN}(\mu_{\X|Y}, \Sigma_{\X|Y}),
+\]
+where
+\[
+\mu_{\X|Y}=\begin{bmatrix}
+	-0.25\\-0.125\\-0.0125
+\end{bmatrix}+
+\begin{bmatrix}
+	0.625\\0.5625\\0.50625
+\end{bmatrix}y,\quad\Sigma_{\X|Y}=\begin{bmatrix} 0.5375 & -0.20625 & -0.365625 \\\\ -0.20625 & 0.644375 & -0.1100625 \\\\ -0.365625 & -0.1100625 & 0.73094375 \end{bmatrix}.
+\]
+
+The marginal distribution of $Y$ on the target distribution is
+\[
+p_t(y)\sim\mathrm{Norm}(\mu=1.5, \sigma^2=2.25).
+\]
+Consequently, function $\rho(y;\bb)$ is given by
+\[
+\rho(y;\bb)=\beta_1y+\beta_2y^2,
+\]
+where
+\[
+\beta_1=-0.722,\quad\beta_2=0.125.
+\]
+
+The sample size of the source distribution data is denoted by $n$ while the sample size of the target distribution data is denoted by $m$.
+The proportion $\pi$ is computed by $\pi=n/(n+m)$.
+The Monte Carlo sample size is $B=2000$.
+In this simulation, we estimate $\bb$ using both the true $p_s(y|\x)$ and the fitted (but correctly specified) $\widehat p_s(y|\x)$.
+
+\subsection*{Simulation Results}
+
+The simulation results using the true model $p_s(y|\x)$ are given in Table~\ref{Table:Set1-True}.
+\begin{table}[ht]
+	\centering
+		\begin{tabular}{rrrrrrrrrr}
+			\hline\hline
+			\multicolumn{1}{c|}{\multirow{2}{*}{n}} & \multicolumn{1}{c|}{\multirow{2}{*}{m}} & \multicolumn{4}{c|}{$\beta_1$}                                                                      & \multicolumn{4}{c}{$\beta_2$}                                                                      \\ \cline{3-10} 
+			\multicolumn{1}{c|}{}                  & \multicolumn{1}{c|}{}                  & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{Bias} & \multicolumn{1}{c}{SE} & \multicolumn{1}{c|}{SD} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{Bias} & \multicolumn{1}{c}{SE} & \multicolumn{1}{c}{SD} \\ \hline\hline
+			500 &    500                                    &         -0.680             &           0.0427           &          0.113            &             3.425          &         0.119             &            -0.00630          &           0.0286           &         1.355             \\
+			500 &     1000                                   &      -0.717               &       0.00556               &      0.123                &         3.679              &       0.116               &       -0.00857              &        0.04436              &          1.529           \\
+			1000&       500                                 &       -0.703              &            0.0189          &          0.114           &          3.444          &       0.121             &       -0.00392             &            0.0266         &        1.351            \\
+			1000&         1000                               &         -0.687             &        0.0352              &       0.0943               &          3.410            &           0.119           &        -0.00617              &            0.0198          &          1.340            \\
+			1500&         1500                               &       -0.691               &          0.0315            &   0.0824                   &       3.412                &       0.120               &      -0.00544                &           0.0169           &         1.342             \\ \hline\hline
+		\end{tabular}
+	\caption{Estimation of $\bb$ using the true model $p_s(y|\x)$.}
+	\label{Table:Set1-True}
+\end{table}
+
+The simulation results using the fitted mode $\hat{p}_s(y|\x)$ are given in Table~\ref{Table:Set1-Fitted}.
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{rrrrrrrrrr}
+		\hline\hline
+		\multicolumn{1}{c|}{\multirow{2}{*}{n}} & \multicolumn{1}{c|}{\multirow{2}{*}{m}} & \multicolumn{4}{c|}{$\beta_1$}                                                                      & \multicolumn{4}{c}{$\beta_2$}                                                                      \\ \cline{3-10} 
+		\multicolumn{1}{c|}{}                  & \multicolumn{1}{c|}{}                  & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{Bias} & \multicolumn{1}{c}{SE} & \multicolumn{1}{c|}{SD} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{Bias} & \multicolumn{1}{c}{SE} & \multicolumn{1}{c}{SD} \\ \hline\hline
+		500 &    500                                    &         -0.681             &           0.04173           &          0.112            &            3.420          &         0.119             &            -0.00633          &           0.0284           &         1.356             \\
+		500 &               1000                         &       -0.717               &             0.00538        &      0.122              &           3.684         &         0.117            &       -0.00846            &          0.0445          &       1.531             \\
+		1000 & 500                                      &        -0.702              &            0.0204          &          0.112           &            3.445          &         0.121             &        -0.00425              &            0.0262          &          1.352                    \\
+		1000&                1000                        &         -0.689             &         0.0333             &         0.0954             &       3.414                &        0.119              &        -0.00609              &         0.0198             &          1.342            \\
+		1500 &             1500                           &       -0.690              &      0.0322                &   0.0820                  &         3.414             &      0.119                &       -0.00556               &        0.0168             &         1.343             \\ \hline\hline
+	\end{tabular}
+	\caption{Estimation of $\bb$ using the fitted model $\widehat p_s(y|\x)$.}
+	\label{Table:Set1-Fitted}
+\end{table}
+
+\subsection*{Discussions}
+This simulation study shows that the estimation approach gives good results as the bias is generally small and the standard error is reasonable.
+In both tables, SE is the standard error and SD is the mean of all $B=2000$ estimated standard deviations.
+It is obvious that either my derivation/programming is incorrect or the formula does not work.
+I checked the functions to compute $\mathrm{E}(\S\eff\S\eff\trans)$ and did not find anything.
+It is of interest to investigate the effect of the ratio of $m/n$ on the Bias/SE in the following simulation.
+
+I used $\mathrm{optim}()$ function for simplicity.
+The running time is not fast but not too terrible as each row takes at most a few hours to run on the laptop.
+If we want to run large number of $n$ and $m$, I can write the optimization algorithm instead of using $\mathrm{optim}()$.
 
 \newpage
 \bibliographystyle{agsm}
