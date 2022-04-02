@@ -64,3 +64,9 @@ Extract_Info <- function(filename, betaRhoTrue, isTrue)
     )
   )
 }
+
+array_to_LaTeX <- function(arr) {
+  rows <- apply(arr, MARGIN=1, paste, collapse = " & ")
+  matrix_string <- paste(rows, collapse = " \\\\ ")
+  return(paste("\\begin{bmatrix}", matrix_string, "\\end{bmatrix}"))
+}
