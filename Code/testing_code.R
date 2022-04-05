@@ -30,3 +30,14 @@ trueBetaRho
 
 ComputeCovMat(fop1$par, XY_All_True, sDat = dat, tDat = xTarget)
 ComputeCovMat(fop2$par, XY_All_Fitted, sDat = dat, tDat = xTarget)
+
+##
+
+n <- 100
+Mu_X <- rep(1,3)
+Sigma_X <- diag(3)
+Alpha <- c(-1, 2, -2, 2)
+
+datTarSrc <- Generate_Source_Target_Sample(300, Mu_X, Sigma_X, Alpha, beta = -1, gamma0 = 0)
+datTarSrc <- as.data.frame(datTarSrc)
+table(Y = datTarSrc[,"Y"], R = datTarSrc[,"R"])
