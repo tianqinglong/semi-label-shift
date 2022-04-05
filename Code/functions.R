@@ -184,6 +184,8 @@ ComputeCovMat <- function(beta_rho, yx_all, sDat, tDat, p1 = -1)
     tempMat <- tempMat + (1-tauVec[i+n]) * matrix(tempVec, ncol = 1) %*% matrix(tempVec, nrow = 1)
   }
   tempMat <- (1-p1)*tempMat/m
+  covMat <- solve(tempMat)
+  covMat <- covMat/(n+m)
   
-  return(solve(tempMat))
+  return(covMat)
 }
