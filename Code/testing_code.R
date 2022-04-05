@@ -3,7 +3,8 @@ source("functions.R")
 
 Mu_YX <- c(2,1,1,1)
 SigMat_YX <- ar1_cor(4, 0.9)
-Sig_XY[-1,-1] <- diag(3)
+SigMat_YX[-1,-1] <- ar1_cor(3, 0.5)
+SigMat_YX <- SigMat_YX+diag(4)*0.2
 
 n <- 500
 m <- 500
@@ -30,6 +31,11 @@ trueBetaRho
 
 ComputeCovMat(fop1$par, XY_All_True, sDat = dat, tDat = xTarget)
 ComputeCovMat(fop2$par, XY_All_Fitted, sDat = dat, tDat = xTarget)
+
+ranNumExp <- rexp(n+m)
+ComputeCovMatPertubation(beta_rho = beta_rho, yx_all = XY_All_True, sDat = dat, tDat = xTarget, ranNumExp = ranNumExp)
+optim(beta_rho, ComputeCovMatPertubation, yx_all = XY_All_True, sDat = dat, tDat = xTarget, ranNumExp = ranNumExp)
+
 
 ##
 

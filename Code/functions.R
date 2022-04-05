@@ -146,6 +146,32 @@ ComputeSEff <- function(beta_rho, yx_all, e_s_rho_x, e_s_rho2_x, c_ps, sDat, tDa
   return(s_eff_multiplier*b1)
 }
 
+ComputeCovMatPertubation <- function(beta_rho, yx_all, sDat, tDat, ranNumExp, p1 = -1)
+{
+  n <- nrow(sDat)
+  m <- nrow(tDat)
+  if (p1 < 0)
+  {
+    p1 <- n/(n+m)
+  }
+  yn <- sDat[,"Y"]
+  
+  e_s_rho_x <- E_s_Rho_X(beta_rho, yx_all, 1)
+  e_s_rho2_x <- E_s_Rho_X(beta_rho, yx_all, 2)
+  c_ps <- E_s_Rho(beta_rho, sDat)
+  
+  s_eff_multiplier <- S_Eff_Multiplier(beta_rho, n, m, yn, c_ps, p1)
+  b1 <- ComputeB1(beta_rho, yx_all, e_s_rho_x, e_s_rho2_x, c_ps, sDat, tDat, p1)
+  
+  Seff <- ComputeSEff(beta_rho, yx_all, e_s_rho_x, e_s_rho2_x, c_ps, sDat, tDat, p1 = -1)
+  
+  ranNumExp <- matrix(ranNumExp, ncol = 2, nrow = n+m)
+  pertSeff <- ranNumExp*Seff
+  sumPertTemp <- colMeans(pertSeff)
+  
+  return(sum(sumPertTemp^2))
+}
+
 ComputeEquation <- function(beta_rho, yx_all, sDat, tDat, p1 = -1)
 {
   e_s_rho_x <- E_s_Rho_X(beta_rho, yx_all, 1)
