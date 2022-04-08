@@ -1,9 +1,4 @@
 #include <Rcpp.h>
-#include <stdio.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_multimin.h>
 
 using namespace Rcpp;
 
@@ -16,8 +11,6 @@ struct optim_params
   double p1;
   NumericVector beta_init;
 };
-
-// [[Rcpp::depends(RcppGSL)]]
 
 // [[Rcpp::export]]
 NumericVector E_s_Rho_X_cpp(NumericVector beta_rho, NumericMatrix yx_all, int rho_pwr) {
