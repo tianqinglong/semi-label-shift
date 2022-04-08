@@ -2,17 +2,6 @@
 
 using namespace Rcpp;
 
-struct optim_params
-{
-  NumericMatrix yx_all;
-  NumericMatrix sDat;
-  int n;
-  int m;
-  double p1;
-  NumericVector beta_init;
-};
-
-// [[Rcpp::export]]
 NumericVector E_s_Rho_X_cpp(NumericVector beta_rho, NumericMatrix yx_all, int rho_pwr) {
   int nrow = yx_all.nrow(), ncol = yx_all.ncol();
   NumericVector out(nrow);
@@ -27,7 +16,6 @@ NumericVector E_s_Rho_X_cpp(NumericVector beta_rho, NumericMatrix yx_all, int rh
   return out;
 }
 
-// [[Rcpp::export]]
 double E_s_Rho_cpp(NumericVector beta_rho, NumericMatrix sDat)
 {
   int nrow = sDat.nrow();
@@ -42,7 +30,6 @@ double E_s_Rho_cpp(NumericVector beta_rho, NumericMatrix sDat)
   return tmpSum;
 }
 
-// [[Rcpp::export]]
 NumericVector ComputeTau_cpp(double c_ps, NumericVector e_s_rho_x, NumericVector e_s_rho2_x, double p1) {
   int nlen = e_s_rho_x.length();
   NumericVector out(nlen);
@@ -54,7 +41,6 @@ NumericVector ComputeTau_cpp(double c_ps, NumericVector e_s_rho_x, NumericVector
   return out;
 }
 
-// [[Rcpp::export]]
 double E_t_Tau_cpp(int n, int m, double c_ps, NumericVector e_s_rho_x, NumericVector e_s_rho2_x, double p1) {
   NumericVector tauVec = ComputeTau_cpp(c_ps, e_s_rho_x, e_s_rho2_x, p1);
   double out = 0;
@@ -65,7 +51,6 @@ double E_t_Tau_cpp(int n, int m, double c_ps, NumericVector e_s_rho_x, NumericVe
   return out;
 }
 
-// [[Rcpp::export]]
 NumericVector E_t_d_log_Rho_d_Beta_cpp(NumericVector beta_rho, NumericMatrix sDat, double c_ps) {
   int nrow = sDat.nrow();
   NumericVector yVec = sDat( _ , 0);
@@ -87,7 +72,6 @@ NumericVector E_t_d_log_Rho_d_Beta_cpp(NumericVector beta_rho, NumericMatrix sDa
   return out;
 }
 
-// [[Rcpp::export]]
 NumericMatrix E_t_d_log_Rho_d_Beta_X_cpp(NumericVector beta_rho, NumericMatrix yx_all, NumericVector e_s_rho_x) {
   int i, j;
   int nrow = yx_all.nrow(), ncol = yx_all.ncol();
@@ -114,7 +98,6 @@ NumericMatrix E_t_d_log_Rho_d_Beta_X_cpp(NumericVector beta_rho, NumericMatrix y
   return out;
 }
 
-// [[Rcpp::export]]
 NumericMatrix ComputeS_cpp(NumericVector beta_rho, NumericMatrix yx_all, NumericVector e_s_rho_x, NumericMatrix sDat, double c_ps) {
   NumericMatrix e_t_d_log_rho_d_beta_x = E_t_d_log_Rho_d_Beta_X_cpp(beta_rho, yx_all, e_s_rho_x);
   NumericVector e_t_d_log_rho_d_beta = E_t_d_log_Rho_d_Beta_cpp(beta_rho, sDat, c_ps);
@@ -128,7 +111,6 @@ NumericMatrix ComputeS_cpp(NumericVector beta_rho, NumericMatrix yx_all, Numeric
   return e_t_d_log_rho_d_beta_x;
 }
 
-// [[Rcpp::export]]
 NumericVector S_Eff_Multiplier_cpp(NumericVector beta_rho, int n, int m, NumericVector yn, double c_ps) {
   double p1 = n / (double) (n+m);
   NumericVector out(n+m);
@@ -142,7 +124,6 @@ NumericVector S_Eff_Multiplier_cpp(NumericVector beta_rho, int n, int m, Numeric
   return out;
 }
 
-// [[Rcpp::export]]
 NumericMatrix ComputeB1_cpp(NumericVector beta_rho, NumericMatrix yx_all,
                             NumericVector e_s_rho_x, NumericVector e_s_rho2_x,
                             double c_ps, int n, int m,
@@ -173,7 +154,6 @@ NumericMatrix ComputeB1_cpp(NumericVector beta_rho, NumericMatrix yx_all,
   return out;
 }
 
-// [[Rcpp::export]]
 NumericMatrix ComputeSEff_cpp(NumericVector beta_rho, NumericMatrix yx_all,
                               NumericVector e_s_rho_x, NumericVector e_s_rho2_x,
                               double c_ps, int n, int m, NumericVector yn,
