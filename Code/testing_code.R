@@ -1,5 +1,6 @@
 source("data_generating_functions.R")
 source("functions.R")
+Rcpp::sourceCpp("fast_version/functions.cpp")
 
 Mu_YX <- c(2,1,1,1)
 SigMat_YX <- ar1_cor(4, 0.9)
@@ -25,17 +26,13 @@ XY_All_True <- Generate_Y_Given_X(YX_Model_True, xTarget, dat)
 XY_All_Fitted <- Generate_Y_Given_X(YX_Model_Fitted, xTarget, dat)
 
 beta_rho <- trueBetaRho
-fop1 <- optim(beta_rho, ComputeEquation, yx_all = XY_All_True, sDat = dat, tDat = xTarget)
-fop2 <- optim(beta_rho, ComputeEquation, yx_all = XY_All_Fitted, sDat = dat, tDat = xTarget)
-trueBetaRho
+#fop1 <- optim(beta_rho, ComputeEquation, yx_all = XY_All_True, sDat = dat, tDat = xTarget)
+fop1_cpp <- optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m))
 
-ComputeCovMat(fop1$par, XY_All_True, sDat = dat, tDat = xTarget)
-ComputeCovMat(fop2$par, XY_All_Fitted, sDat = dat, tDat = xTarget)
+datlist <- list(yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m), beta_init = trueBetaRho)
+findBetaLabelShift(datlist)
 
-ranNumExp <- rexp(n+m)
-ComputeCovMatPertubation(beta_rho = beta_rho, yx_all = XY_All_True, sDat = dat, tDat = xTarget, ranNumExp = ranNumExp)
-optim(beta_rho, ComputeCovMatPertubation, yx_all = XY_All_True, sDat = dat, tDat = xTarget, ranNumExp = ranNumExp)
-
+microbenchmark::microbenchmark(findBetaLabelShift(datlist), optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m)))
 
 ##
 
