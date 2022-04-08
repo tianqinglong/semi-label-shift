@@ -26,13 +26,10 @@ XY_All_True <- Generate_Y_Given_X(YX_Model_True, xTarget, dat)
 XY_All_Fitted <- Generate_Y_Given_X(YX_Model_Fitted, xTarget, dat)
 
 beta_rho <- trueBetaRho
-#fop1 <- optim(beta_rho, ComputeEquation, yx_all = XY_All_True, sDat = dat, tDat = xTarget)
+fop1 <- optim(beta_rho, ComputeEquation, yx_all = XY_All_True, sDat = dat, tDat = xTarget)
+fop1
 fop1_cpp <- optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m))
-
-datlist <- list(yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m), beta_init = trueBetaRho)
-findBetaLabelShift(datlist)
-
-microbenchmark::microbenchmark(findBetaLabelShift(datlist), optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m)))
+fop1_cpp
 
 ##
 
