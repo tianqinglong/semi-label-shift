@@ -216,97 +216,97 @@ double ComputeEquation_cpp(NumericVector beta_rho, NumericMatrix yx_all, Numeric
   return out;
 }
 
-double my_f(const gsl_vector *v, void *params) {
+// double my_f(const gsl_vector *v, void *params) {
   
-  double beta1, beta2;
-  beta1 = gsl_vector_get(v, 0);
-  beta2 = gsl_vector_get(v, 1);
+//   double beta1, beta2;
+//   beta1 = gsl_vector_get(v, 0);
+//   beta2 = gsl_vector_get(v, 1);
   
-  NumericVector beta_vec(2);
-  beta_vec(0) = beta1;
-  beta_vec(1) = beta2;
+//   NumericVector beta_vec(2);
+//   beta_vec(0) = beta1;
+//   beta_vec(1) = beta2;
   
-  struct optim_params *dat = (struct optim_params *) params;
-  NumericMatrix yx_all = dat->yx_all;
-  NumericMatrix sDat = dat->sDat;
-  int n = dat->n, m = dat->m;
-  double p1 = dat->p1;
+//   struct optim_params *dat = (struct optim_params *) params;
+//   NumericMatrix yx_all = dat->yx_all;
+//   NumericMatrix sDat = dat->sDat;
+//   int n = dat->n, m = dat->m;
+//   double p1 = dat->p1;
   
-  double out;
-  out = ComputeEquation_cpp(beta_vec, yx_all, sDat, n, m, p1);
+//   double out;
+//   out = ComputeEquation_cpp(beta_vec, yx_all, sDat, n, m, p1);
   
-  return out;
-}
+//   return out;
+// }
 
-// [[Rcpp::export]]
+// // [[Rcpp::export]]
 
-NumericVector findBetaLabelShift(List dat) {
-  NumericMatrix yx_all = dat[0];
-  NumericMatrix sDat = dat[1];
-  int n = dat[2], m = dat[3];
-  double p1 = dat[4];
-  NumericVector beta_init = dat[5];
+// NumericVector findBetaLabelShift(List dat) {
+//   NumericMatrix yx_all = dat[0];
+//   NumericMatrix sDat = dat[1];
+//   int n = dat[2], m = dat[3];
+//   double p1 = dat[4];
+//   NumericVector beta_init = dat[5];
   
-  struct optim_params par = {yx_all, sDat, n, m, p1};
+//   struct optim_params par = {yx_all, sDat, n, m, p1};
   
-  const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
-  gsl_multimin_fminimizer *s = NULL;
-  gsl_vector *ss, *x;
-  gsl_multimin_function minex_func;
+//   const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
+//   gsl_multimin_fminimizer *s = NULL;
+//   gsl_vector *ss, *x;
+//   gsl_multimin_function minex_func;
   
-  int iter = 0;
-  int status;
-  double size;
+//   int iter = 0;
+//   int status;
+//   double size;
   
-  x = gsl_vector_alloc (2);
+//   x = gsl_vector_alloc (2);
   
-  gsl_vector_set (x, 0, beta_init(0));
-  gsl_vector_set (x, 1, beta_init(1));
+//   gsl_vector_set (x, 0, beta_init(0));
+//   gsl_vector_set (x, 1, beta_init(1));
   
-  ss = gsl_vector_alloc (2);
-  gsl_vector_set_all (ss, 1.0);
+//   ss = gsl_vector_alloc (2);
+//   gsl_vector_set_all (ss, 1.0);
   
-  /* Initialize method and iterate */
-  minex_func.n = 2;
-  minex_func.f = my_f;
-  minex_func.params = &par;
+//   /* Initialize method and iterate */
+//   minex_func.n = 2;
+//   minex_func.f = my_f;
+//   minex_func.params = &par;
   
-  s = gsl_multimin_fminimizer_alloc (T, 2);
-  gsl_multimin_fminimizer_set (s, &minex_func, x, ss);
+//   s = gsl_multimin_fminimizer_alloc (T, 2);
+//   gsl_multimin_fminimizer_set (s, &minex_func, x, ss);
   
-  do
-  {
-    iter++;
-    status = gsl_multimin_fminimizer_iterate(s);
+//   do
+//   {
+//     iter++;
+//     status = gsl_multimin_fminimizer_iterate(s);
     
-    if (status)
-      break;
+//     if (status)
+//       break;
     
-    size = gsl_multimin_fminimizer_size (s);
-    status = gsl_multimin_test_size (size, 1e-2);
-    // printf("%5d %.5f %.5f %10.5f\n",
-    //        iter,
-    //        gsl_vector_get (s->x, 0),
-    //        gsl_vector_get (s->x, 1),
-    //        gsl_multimin_fminimizer_minimum(s));
-  }
-  while (status == GSL_CONTINUE && iter < 500);
+//     size = gsl_multimin_fminimizer_size (s);
+//     status = gsl_multimin_test_size (size, 1e-5);
+//     // printf("%5d %.5f %.5f %10.5f\n",
+//     //        iter,
+//     //        gsl_vector_get (s->x, 0),
+//     //        gsl_vector_get (s->x, 1),
+//     //        gsl_multimin_fminimizer_minimum(s));
+//   }
+//   while (status == GSL_CONTINUE && iter < 500);
   
-  NumericVector MLEs(2);
-  if (status == GSL_SUCCESS)
-  {
-    MLEs[0] = gsl_vector_get (s->x, 0);
-    MLEs[1] = gsl_vector_get (s->x, 1);
-  }
-  else
-  {
-    MLEs[0] = -99;
-    MLEs[1] = -99;
-  }
+//   NumericVector MLEs(2);
+//   if (status == GSL_SUCCESS)
+//   {
+//     MLEs[0] = gsl_vector_get (s->x, 0);
+//     MLEs[1] = gsl_vector_get (s->x, 1);
+//   }
+//   else
+//   {
+//     MLEs[0] = -99;
+//     MLEs[1] = -99;
+//   }
   
-  gsl_vector_free(x);
-  gsl_vector_free(ss);
-  gsl_multimin_fminimizer_free (s);
+//   gsl_vector_free(x);
+//   gsl_vector_free(ss);
+//   gsl_multimin_fminimizer_free (s);
   
-  return MLEs;
-}
+//   return MLEs;
+// }
