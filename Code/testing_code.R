@@ -33,6 +33,27 @@ fop1_cpp
 
 ##
 
+library(parallel)
+
+B <- 1000
+weightsList <- mclapply(1:B, function(b) {
+  return(rexp(n+m))
+},
+mc.cores = 12
+)
+
+mclapply(weightsList, function(weights) {
+  fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
+  return(fop$par)
+},
+mc.cores = 12
+) -> beta_pertubation
+
+beta_pertubation <- matrix(unlist(beta_pertubation), byrow = T, ncol = 2)
+apply(beta_pertubation, MARGIN = 2, quantile, probs = c(0.025, 0.975))
+
+##
+
 nm <- 300
 Mu_X <- rep(1,3)
 Sigma_X <- diag(3)
