@@ -189,6 +189,25 @@ double ComputeEquation_cpp(NumericVector beta_rho, NumericMatrix yx_all, Numeric
   return out;
 }
 
+// [[Rcpp::export]]
+double ComputeEquationPerb_cpp(NumericVector beta_rho, NumericMatrix yx_all, NumericMatrix sDat, int n, int m, double p1, NumericVector Weights) {
+  NumericVector e_s_rho_x = E_s_Rho_X_cpp(beta_rho, yx_all, 1), e_s_rho2_x = E_s_Rho_X_cpp(beta_rho, yx_all, 2);
+  double c_ps = E_s_Rho_cpp(beta_rho, sDat);
+  NumericVector yVec = sDat( _ , 0);
+  NumericMatrix sEffMat = ComputeSEff_cpp(beta_rho, yx_all, e_s_rho_x, e_s_rho2_x, c_ps, n, m, yVec, sDat);
+  
+  double out1=0, out2=0, out;
+  for (int i=0; i<n+m; i++) {
+    out1 += sEffMat(i,0)*Weights(i);
+    out2 += sEffMat(i,1)*Weights(i);
+  }
+  out1 /= n+m;
+  out2 /= n+m;
+  out = out1*out1+out2*out2;
+  
+  return out;
+}
+
 // double my_f(const gsl_vector *v, void *params) {
   
 //   double beta1, beta2;
