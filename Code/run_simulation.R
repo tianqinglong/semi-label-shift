@@ -16,8 +16,8 @@ trueBetaRho <- Compute_Rho_Parameters(Mu_Y_T, Sig_Y_T, Mu_YX, SigMat_YX)
 n <- 500
 m <- 500
 
-B1 <- 2000
-B2 <- 1000
+B1 <- 1800
+B2 <- 1800
 
 t0 <- Sys.time()
 
@@ -31,6 +31,12 @@ mclapply(1:B2, function(b) {
 },
 mc.cores = 12) -> weightsList
 
+dataggr <- NULL
+for (i in 1:length(datList)) {
+  datEach <- datList[[i]]$sDat
+  dataggr <- rbind(dataggr, datEach)
+}
+
 mclapply(datList, function(datAll) {
   dat <- datAll$sDat
   xTarget <- datAll$tDat
@@ -41,38 +47,147 @@ mclapply(datList, function(datAll) {
   XY_All_True <- Generate_Y_Given_X(YX_Model_True, xTarget, dat)
   XY_All_Fitted <- Generate_Y_Given_X(YX_Model_Fitted, xTarget, dat)
   
-  # fop <- optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m))
-  # betaHat <- fop$par
+  fop <- optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m))
+  betaHat <- fop$par
   
-  lapply(weightsList, function(weights) {
-    fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
-    return(fop$par)
-  }) -> beta_pertubation
+  covMat_cpp <- ComputeCovMat_cpp(betaHat, XY_All_True, dat, n, m, n/(n+m))
+  SdVec <- sqrt(diag(covMat_cpp))
   
-  lapply(weightsList, function(weights) {
-    fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_Fitted, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
-    return(fop$par)
-  }) -> beta_pertubation_2
+  c_ps_use_all <- E_s_Rho(betaHat, dataggr)
+  covMat_cpp_test <- ComputeCovMat_cpp_test(betaHat, XY_All_True, dat, c_ps_use_all, n, m, n/(n+m))
+  SdVec_test <- sqrt(diag(covMat_cpp_test))
+  
+  # lapply(weightsList, function(weights) {
+  #   fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
+  #   return(fop$par)
+  # }) -> beta_pertubation
+  
+  # lapply(weightsList, function(weights) {
+  #   fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_Fitted, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
+  #   return(fop$par)
+  # }) -> beta_pertubation_2
 
-  beta_pertubation <- matrix(unlist(beta_pertubation), byrow = T, ncol = 2)
-  apply(beta_pertubation, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs
-  colnames(CIs) <- c("beta0", "beta1")
+  # beta_pertubation <- matrix(unlist(beta_pertubation), byrow = T, ncol = 2)
+  # apply(beta_pertubation, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs
+  # colnames(CIs) <- c("beta0", "beta1")
   
-  cp1 <- (beta_rho[1] >= CIs[1,1]) & (beta_rho[1] <= CIs[2,1])
-  cp2 <- (beta_rho[2] >= CIs[1,2]) & (beta_rho[2] <= CIs[2,2])
-  
-  beta_pertubation_2 <- matrix(unlist(beta_pertubation_2), byrow = T, ncol = 2)
-  apply(beta_pertubation_2, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs_2
-  colnames(CIs_2) <- c("beta0", "beta1")
-  
-  cp3 <- (beta_rho[1] >= CIs_2[1,1]) & (beta_rho[1] <= CIs_2[2,1])
-  cp4 <- (beta_rho[2] >= CIs_2[1,2]) & (beta_rho[2] <= CIs_2[2,2])
+  # cp1 <- (beta_rho[1] >= CIs[1,1]) & (beta_rho[1] <= CIs[2,1])
+  # cp2 <- (beta_rho[2] >= CIs[1,2]) & (beta_rho[2] <= CIs[2,2])
+  # 
+  # beta_pertubation_2 <- matrix(unlist(beta_pertubation_2), byrow = T, ncol = 2)
+  # apply(beta_pertubation_2, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs_2
+  # colnames(CIs_2) <- c("beta0", "beta1")
+  # 
+  # cp3 <- (beta_rho[1] >= CIs_2[1,1]) & (beta_rho[1] <= CIs_2[2,1])
+  # cp4 <- (beta_rho[2] >= CIs_2[1,2]) & (beta_rho[2] <= CIs_2[2,2])
 
-  return(c(cp1, cp2, cp3, cp4))
+  CI2 <- cbind(c(betaHat[1]-1.96*SdVec[1], betaHat[1]+1.96*SdVec[1]),
+               c(betaHat[2]-1.96*SdVec[2], betaHat[2]+1.96*SdVec[2]))
+  colnames(CI2) <- c("beta0", "beta1")
+  
+  CI3 <- cbind(c(betaHat[1]-1.96*SdVec_test[1], betaHat[1]+1.96*SdVec_test[1]),
+               c(betaHat[2]-1.96*SdVec_test[2], betaHat[2]+1.96*SdVec_test[2]))
+  colnames(CI3) <- c("beta0", "beta1")
+  
+  # if (CIs[1,1] <= beta_rho[1] && CIs[2,1] >= beta_rho[1]) {
+  #   CP1_1 <- TRUE
+  # }
+  # else
+  # {
+  #   CP1_1 <- FALSE
+  # }
+  
+  # if (CIs[1,2] <= beta_rho[2] && CIs[2,2] >= beta_rho[2]) {
+  #   CP1_2 <- TRUE
+  # }
+  # else
+  # {
+  #   CP1_2 <- FALSE
+  # }
+  # CP1 <- c(CP1_1, CP1_2)
+  
+  if (CI2[1,1] <= beta_rho[1] && CI2[2,1] >= beta_rho[1]) {
+    CP2_1 <- TRUE
+  }
+  else
+  {
+    CP2_1  <- FALSE
+  }
+  
+  if (CI2[1,2] <= beta_rho[2] && CI2[2,2] >= beta_rho[2]) {
+    CP2_2 <- TRUE
+  }
+  else
+  {
+    CP2_2  <- FALSE
+  }
+  CP2 <- c(CP2_1, CP2_2)
+  
+  if (CI3[1,1] <= beta_rho[1] && CI3[2,1] >= beta_rho[1]) {
+    CP3_1 <- TRUE
+  }
+  else
+  {
+    CP3_1  <- FALSE
+  }
+  
+  if (CI3[1,2] <= beta_rho[2] && CI3[2,2] >= beta_rho[2]) {
+    CP3_2 <- TRUE
+  }
+  else
+  {
+    CP3_2  <- FALSE
+  }
+  CP3 <- c(CP3_1, CP3_2)
+  
+  return(list(True = beta_rho, Estimated = betaHat,
+              # CI_1 = CIs, CP_1 = CP1,
+              CI_2 = CI2, CP_2 = CP2,
+              CI_3 = CI3, CP_3 = CP3))
 },
 mc.cores = 12) -> resultsList
-cp <- colMeans(matrix(unlist(resultsList), ncol = 4, byrow = T))
-saveRDS(cp, file = paste("n",n,"m",m,"_cp.rds", sep = ""))
+
+# rowMeans(sapply(resultsList, function(result) {
+#   result$CP_1
+# }))
+
+rowMeans(sapply(resultsList, function(result) {
+  result$CP_2
+}))
+
+rowMeans(sapply(resultsList, function(result) {
+  result$CP_3
+}))
+
+sapply(resultsList, function(result) {
+  betaHat <- result$Estimated
+  
+  return(betaHat)
+}) -> betaHatAll
+
+rowMeans(betaHatAll)
+
+sapply(resultsList, function(result) {
+  len0 <- result$CI_2[2,1]-result$CI_2[1,1]
+  len1 <- result$CI_2[2,2]-result$CI_2[1,2]
+  
+  return(c(len0, len1))
+}) -> len2
+rowMeans(len2)
+
+sapply(resultsList, function(result) {
+  len0 <- result$CI_3[2,1]-result$CI_3[1,1]
+  len1 <- result$CI_3[2,2]-result$CI_3[1,2]
+  
+  return(c(len0, len1))
+}) -> len3
+rowMeans(len3)
+
+# 
+# cp <- colMeans(matrix(unlist(resultsList), ncol = 4, byrow = T))
+# saveRDS(cp, file = paste("n",n,"m",m,"_cp.rds", sep = ""))
+
+
 
 t1 <- Sys.time()
 t1-t0
@@ -180,260 +295,3 @@ t1-t0
 # filenames <- list.files("../SimuResults/")
 # 
 # Extract_Info_Temp(filename = filenames[3], betaRhoTrue = trueBetaRho, isTrue = TRUE)
-
-n <- 500
-m <- 1000
-
-B1 <- 2000
-B2 <- 1000
-
-t0 <- Sys.time()
-
-mclapply(1:B1, function(b) {
-  Generate_Dat(n, m, Mu_YX, SigMat_YX, Mu_Y_T, Sig_Y_T)
-},
-mc.cores = 12) -> datList
-
-mclapply(1:B2, function(b) {
-  rexp(n+m)
-},
-mc.cores = 12) -> weightsList
-
-mclapply(datList, function(datAll) {
-  dat <- datAll$sDat
-  xTarget <- datAll$tDat
-  beta_rho <- trueBetaRho
-  YX_Model_True <- Compute_Y_Given_X(Mu_YX, SigMat_YX)
-  YX_Model_Fitted <- Fit_YX_Model_Source(dat)
-  
-  XY_All_True <- Generate_Y_Given_X(YX_Model_True, xTarget, dat)
-  XY_All_Fitted <- Generate_Y_Given_X(YX_Model_Fitted, xTarget, dat)
-  
-  # fop <- optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m))
-  # betaHat <- fop$par
-  
-  lapply(weightsList, function(weights) {
-    fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
-    return(fop$par)
-  }) -> beta_pertubation
-  
-  lapply(weightsList, function(weights) {
-    fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_Fitted, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
-    return(fop$par)
-  }) -> beta_pertubation_2
-
-  beta_pertubation <- matrix(unlist(beta_pertubation), byrow = T, ncol = 2)
-  apply(beta_pertubation, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs
-  colnames(CIs) <- c("beta0", "beta1")
-  
-  cp1 <- (beta_rho[1] >= CIs[1,1]) & (beta_rho[1] <= CIs[2,1])
-  cp2 <- (beta_rho[2] >= CIs[1,2]) & (beta_rho[2] <= CIs[2,2])
-  
-  beta_pertubation_2 <- matrix(unlist(beta_pertubation_2), byrow = T, ncol = 2)
-  apply(beta_pertubation_2, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs_2
-  colnames(CIs_2) <- c("beta0", "beta1")
-  
-  cp3 <- (beta_rho[1] >= CIs_2[1,1]) & (beta_rho[1] <= CIs_2[2,1])
-  cp4 <- (beta_rho[2] >= CIs_2[1,2]) & (beta_rho[2] <= CIs_2[2,2])
-
-  return(c(cp1, cp2, cp3, cp4))
-},
-mc.cores = 12) -> resultsList
-cp <- colMeans(matrix(unlist(resultsList), ncol = 4, byrow = T))
-saveRDS(cp, file = paste("n",n,"m",m,"_cp.rds", sep = ""))
-
-t1 <- Sys.time()
-t1-t0
-
-n <- 1000
-m <- 500
-
-B1 <- 2000
-B2 <- 1000
-
-t0 <- Sys.time()
-
-mclapply(1:B1, function(b) {
-  Generate_Dat(n, m, Mu_YX, SigMat_YX, Mu_Y_T, Sig_Y_T)
-},
-mc.cores = 12) -> datList
-
-mclapply(1:B2, function(b) {
-  rexp(n+m)
-},
-mc.cores = 12) -> weightsList
-
-mclapply(datList, function(datAll) {
-  dat <- datAll$sDat
-  xTarget <- datAll$tDat
-  beta_rho <- trueBetaRho
-  YX_Model_True <- Compute_Y_Given_X(Mu_YX, SigMat_YX)
-  YX_Model_Fitted <- Fit_YX_Model_Source(dat)
-  
-  XY_All_True <- Generate_Y_Given_X(YX_Model_True, xTarget, dat)
-  XY_All_Fitted <- Generate_Y_Given_X(YX_Model_Fitted, xTarget, dat)
-  
-  # fop <- optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m))
-  # betaHat <- fop$par
-  
-  lapply(weightsList, function(weights) {
-    fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
-    return(fop$par)
-  }) -> beta_pertubation
-  
-  lapply(weightsList, function(weights) {
-    fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_Fitted, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
-    return(fop$par)
-  }) -> beta_pertubation_2
-
-  beta_pertubation <- matrix(unlist(beta_pertubation), byrow = T, ncol = 2)
-  apply(beta_pertubation, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs
-  colnames(CIs) <- c("beta0", "beta1")
-  
-  cp1 <- (beta_rho[1] >= CIs[1,1]) & (beta_rho[1] <= CIs[2,1])
-  cp2 <- (beta_rho[2] >= CIs[1,2]) & (beta_rho[2] <= CIs[2,2])
-  
-  beta_pertubation_2 <- matrix(unlist(beta_pertubation_2), byrow = T, ncol = 2)
-  apply(beta_pertubation_2, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs_2
-  colnames(CIs_2) <- c("beta0", "beta1")
-  
-  cp3 <- (beta_rho[1] >= CIs_2[1,1]) & (beta_rho[1] <= CIs_2[2,1])
-  cp4 <- (beta_rho[2] >= CIs_2[1,2]) & (beta_rho[2] <= CIs_2[2,2])
-
-  return(c(cp1, cp2, cp3, cp4))
-},
-mc.cores = 12) -> resultsList
-cp <- colMeans(matrix(unlist(resultsList), ncol = 4, byrow = T))
-saveRDS(cp, file = paste("n",n,"m",m,"_cp.rds", sep = ""))
-
-t1 <- Sys.time()
-t1-t0
-
-n <- 1000
-m <- 1000
-
-B1 <- 2000
-B2 <- 1000
-
-t0 <- Sys.time()
-
-mclapply(1:B1, function(b) {
-  Generate_Dat(n, m, Mu_YX, SigMat_YX, Mu_Y_T, Sig_Y_T)
-},
-mc.cores = 12) -> datList
-
-mclapply(1:B2, function(b) {
-  rexp(n+m)
-},
-mc.cores = 12) -> weightsList
-
-mclapply(datList, function(datAll) {
-  dat <- datAll$sDat
-  xTarget <- datAll$tDat
-  beta_rho <- trueBetaRho
-  YX_Model_True <- Compute_Y_Given_X(Mu_YX, SigMat_YX)
-  YX_Model_Fitted <- Fit_YX_Model_Source(dat)
-  
-  XY_All_True <- Generate_Y_Given_X(YX_Model_True, xTarget, dat)
-  XY_All_Fitted <- Generate_Y_Given_X(YX_Model_Fitted, xTarget, dat)
-  
-  # fop <- optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m))
-  # betaHat <- fop$par
-  
-  lapply(weightsList, function(weights) {
-    fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
-    return(fop$par)
-  }) -> beta_pertubation
-  
-  lapply(weightsList, function(weights) {
-    fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_Fitted, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
-    return(fop$par)
-  }) -> beta_pertubation_2
-
-  beta_pertubation <- matrix(unlist(beta_pertubation), byrow = T, ncol = 2)
-  apply(beta_pertubation, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs
-  colnames(CIs) <- c("beta0", "beta1")
-  
-  cp1 <- (beta_rho[1] >= CIs[1,1]) & (beta_rho[1] <= CIs[2,1])
-  cp2 <- (beta_rho[2] >= CIs[1,2]) & (beta_rho[2] <= CIs[2,2])
-  
-  beta_pertubation_2 <- matrix(unlist(beta_pertubation_2), byrow = T, ncol = 2)
-  apply(beta_pertubation_2, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs_2
-  colnames(CIs_2) <- c("beta0", "beta1")
-  
-  cp3 <- (beta_rho[1] >= CIs_2[1,1]) & (beta_rho[1] <= CIs_2[2,1])
-  cp4 <- (beta_rho[2] >= CIs_2[1,2]) & (beta_rho[2] <= CIs_2[2,2])
-
-  return(c(cp1, cp2, cp3, cp4))
-},
-mc.cores = 12) -> resultsList
-cp <- colMeans(matrix(unlist(resultsList), ncol = 4, byrow = T))
-saveRDS(cp, file = paste("n",n,"m",m,"_cp.rds", sep = ""))
-
-t1 <- Sys.time()
-t1-t0
-
-n <- 1500
-m <- 1500
-
-B1 <- 2000
-B2 <- 1000
-
-t0 <- Sys.time()
-
-mclapply(1:B1, function(b) {
-  Generate_Dat(n, m, Mu_YX, SigMat_YX, Mu_Y_T, Sig_Y_T)
-},
-mc.cores = 12) -> datList
-
-mclapply(1:B2, function(b) {
-  rexp(n+m)
-},
-mc.cores = 12) -> weightsList
-
-mclapply(datList, function(datAll) {
-  dat <- datAll$sDat
-  xTarget <- datAll$tDat
-  beta_rho <- trueBetaRho
-  YX_Model_True <- Compute_Y_Given_X(Mu_YX, SigMat_YX)
-  YX_Model_Fitted <- Fit_YX_Model_Source(dat)
-  
-  XY_All_True <- Generate_Y_Given_X(YX_Model_True, xTarget, dat)
-  XY_All_Fitted <- Generate_Y_Given_X(YX_Model_Fitted, xTarget, dat)
-  
-  # fop <- optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m))
-  # betaHat <- fop$par
-  
-  lapply(weightsList, function(weights) {
-    fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
-    return(fop$par)
-  }) -> beta_pertubation
-  
-  lapply(weightsList, function(weights) {
-    fop <- optim(beta_rho, ComputeEquationPerb_cpp, yx_all = XY_All_Fitted, sDat = dat, n = n, m = m, p1 = n/(n+m), Weights = weights)
-    return(fop$par)
-  }) -> beta_pertubation_2
-
-  beta_pertubation <- matrix(unlist(beta_pertubation), byrow = T, ncol = 2)
-  apply(beta_pertubation, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs
-  colnames(CIs) <- c("beta0", "beta1")
-  
-  cp1 <- (beta_rho[1] >= CIs[1,1]) & (beta_rho[1] <= CIs[2,1])
-  cp2 <- (beta_rho[2] >= CIs[1,2]) & (beta_rho[2] <= CIs[2,2])
-  
-  beta_pertubation_2 <- matrix(unlist(beta_pertubation_2), byrow = T, ncol = 2)
-  apply(beta_pertubation_2, MARGIN = 2, quantile, probs = c(0.025, 0.975)) -> CIs_2
-  colnames(CIs_2) <- c("beta0", "beta1")
-  
-  cp3 <- (beta_rho[1] >= CIs_2[1,1]) & (beta_rho[1] <= CIs_2[2,1])
-  cp4 <- (beta_rho[2] >= CIs_2[1,2]) & (beta_rho[2] <= CIs_2[2,2])
-
-  return(c(cp1, cp2, cp3, cp4))
-},
-mc.cores = 12) -> resultsList
-cp <- colMeans(matrix(unlist(resultsList), ncol = 4, byrow = T))
-saveRDS(cp, file = paste("n",n,"m",m,"_cp.rds", sep = ""))
-
-t1 <- Sys.time()
-t1-t0
-

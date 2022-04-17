@@ -31,6 +31,11 @@ fop1
 fop1_cpp <- optim(beta_rho, ComputeEquation_cpp, yx_all = XY_All_True, sDat = dat, n = n, m = m, p1 = n/(n+m))
 fop1_cpp
 
+covMat_cpp <- ComputeCovMat_cpp(beta_rho, XY_All_True, dat, n, m, n/(n+m))
+covMat <- ComputeCovMat(beta_rho = beta_rho, yx_all = XY_All_True, sDat = dat, tDat = xTarget, p1 = n/(n+m))
+
+sqrt(diag(covMat_cpp))
+
 ##
 
 library(parallel)
@@ -64,3 +69,4 @@ gamma0 <- 0
 datTarSrc <- Generate_Source_Target_Sample(nm, Mu_X, Sigma_X, Alpha, beta, gamma0)
 datTarSrc <- as.data.frame(datTarSrc)
 table(Y = datTarSrc[,"Y"], R = datTarSrc[,"R"])
+

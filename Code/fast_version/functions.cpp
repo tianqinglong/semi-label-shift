@@ -1,4 +1,4 @@
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
 
 using namespace Rcpp;
 
@@ -169,6 +169,99 @@ NumericMatrix ComputeSEff_cpp(NumericVector beta_rho, NumericMatrix yx_all,
   
   return out;
 }
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat ComputeCovMat_cpp(NumericVector beta_rho, NumericMatrix yx_all, NumericMatrix sDat, int n, int m, double p1) {
+  NumericVector e_s_rho_x = E_s_Rho_X_cpp(beta_rho, yx_all, 1), e_s_rho2_x = E_s_Rho_X_cpp(beta_rho, yx_all, 2);
+  double c_ps = E_s_Rho_cpp(beta_rho, sDat);
+
+  NumericVector tauVec = ComputeTau_cpp(c_ps, e_s_rho_x, e_s_rho2_x, p1);
+  NumericMatrix sVec = ComputeS_cpp(beta_rho, yx_all, e_s_rho_x, sDat, c_ps);
+  
+  NumericVector e_t_tau_s(2);
+  for (int i=0; i<m; i++) {
+    e_t_tau_s(0) += tauVec(i+n)*sVec(i+n,0);
+    e_t_tau_s(1) += tauVec(i+n)*sVec(i+n,1);
+  }
+  e_t_tau_s(0) /= m;
+  e_t_tau_s(1) /= m;
+  
+  double e_t_tau = E_t_Tau_cpp(n, m, c_ps, e_s_rho_x, e_s_rho2_x, p1);
+  NumericMatrix tmpMat(2,2);
+  for (int i=0; i<m; i++) {
+    tmpMat(0,0) += (1-tauVec(i+n))*(sVec(i+n,0)-e_t_tau_s(0)/(e_t_tau-1))*(sVec(i+n,0)-e_t_tau_s(0)/(e_t_tau-1))*(1-p1);
+    tmpMat(0,1) += (1-tauVec(i+n))*(sVec(i+n,0)-e_t_tau_s(0)/(e_t_tau-1))*(sVec(i+n,1)-e_t_tau_s(1)/(e_t_tau-1))*(1-p1);
+    tmpMat(1,0) += (1-tauVec(i+n))*(sVec(i+n,1)-e_t_tau_s(1)/(e_t_tau-1))*(sVec(i+n,0)-e_t_tau_s(0)/(e_t_tau-1))*(1-p1);
+    tmpMat(1,1) += (1-tauVec(i+n))*(sVec(i+n,1)-e_t_tau_s(1)/(e_t_tau-1))*(sVec(i+n,1)-e_t_tau_s(1)/(e_t_tau-1))*(1-p1);
+  }
+  
+  tmpMat(0,0) /= m;
+  tmpMat(1,0) /= m;
+  tmpMat(0,1) /= m;
+  tmpMat(1,1) /= m;
+  
+  arma::mat outMat(2,2);
+  outMat(0,0) = tmpMat(0,0);
+  outMat(0,1) = tmpMat(0,1);
+  outMat(1,0) = tmpMat(1,0);
+  outMat(1,1) = tmpMat(1,1);
+  
+  outMat = inv(outMat);
+
+  outMat(0,0) /= (n+m);
+  outMat(1,0) /= (n+m);
+  outMat(0,1) /= (n+m);
+  outMat(1,1) /= (n+m);
+  
+  return outMat;
+}
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat ComputeCovMat_cpp_test(NumericVector beta_rho, NumericMatrix yx_all, NumericMatrix sDat, double c_ps, int n, int m, double p1) {
+  NumericVector e_s_rho_x = E_s_Rho_X_cpp(beta_rho, yx_all, 1), e_s_rho2_x = E_s_Rho_X_cpp(beta_rho, yx_all, 2);
+  NumericVector tauVec = ComputeTau_cpp(c_ps, e_s_rho_x, e_s_rho2_x, p1);
+  NumericMatrix sVec = ComputeS_cpp(beta_rho, yx_all, e_s_rho_x, sDat, c_ps);
+  
+  NumericVector e_t_tau_s(2);
+  for (int i=0; i<m; i++) {
+    e_t_tau_s(0) += tauVec(i+n)*sVec(i+n,0);
+    e_t_tau_s(1) += tauVec(i+n)*sVec(i+n,1);
+  }
+  e_t_tau_s(0) /= m;
+  e_t_tau_s(1) /= m;
+  
+  double e_t_tau = E_t_Tau_cpp(n, m, c_ps, e_s_rho_x, e_s_rho2_x, p1);
+  NumericMatrix tmpMat(2,2);
+  for (int i=0; i<m; i++) {
+    tmpMat(0,0) += (1-tauVec(i+n))*(sVec(i+n,0)-e_t_tau_s(0)/(e_t_tau-1))*(sVec(i+n,0)-e_t_tau_s(0)/(e_t_tau-1))*(1-p1);
+    tmpMat(0,1) += (1-tauVec(i+n))*(sVec(i+n,0)-e_t_tau_s(0)/(e_t_tau-1))*(sVec(i+n,1)-e_t_tau_s(1)/(e_t_tau-1))*(1-p1);
+    tmpMat(1,0) += (1-tauVec(i+n))*(sVec(i+n,1)-e_t_tau_s(1)/(e_t_tau-1))*(sVec(i+n,0)-e_t_tau_s(0)/(e_t_tau-1))*(1-p1);
+    tmpMat(1,1) += (1-tauVec(i+n))*(sVec(i+n,1)-e_t_tau_s(1)/(e_t_tau-1))*(sVec(i+n,1)-e_t_tau_s(1)/(e_t_tau-1))*(1-p1);
+  }
+  
+  tmpMat(0,0) /= m;
+  tmpMat(1,0) /= m;
+  tmpMat(0,1) /= m;
+  tmpMat(1,1) /= m;
+  
+  arma::mat outMat(2,2);
+  outMat(0,0) = tmpMat(0,0);
+  outMat(0,1) = tmpMat(0,1);
+  outMat(1,0) = tmpMat(1,0);
+  outMat(1,1) = tmpMat(1,1);
+  
+  outMat = inv(outMat);
+  
+  outMat(0,0) /= (n+m);
+  outMat(1,0) /= (n+m);
+  outMat(0,1) /= (n+m);
+  outMat(1,1) /= (n+m);
+  
+  return outMat;
+}
+
 
 // [[Rcpp::export]]
 double ComputeEquation_cpp(NumericVector beta_rho, NumericMatrix yx_all, NumericMatrix sDat, int n, int m, double p1) {
