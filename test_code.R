@@ -37,14 +37,17 @@ dataList <- Generate_Dat(n, m, Mu_YX, SigMat_YX, Mu_Y_T, Sig_Y_T)
 sData <- dataList$sDat
 tData <- dataList$tDat
 piVal <- n/(n+m)
-sData_ext <- data_list_extra$sDat
 tDat_ext <- data_list_extra$tDat
 coef_y_x_s <- coef_y_x_s_true
 sigma_y_x_s <- sigma_y_x_s_true
-
-ComputeEfficientScore(trueBetaRho, sData, tData, piVal, sData_ext, tDat_ext, coef_y_x_s, sigma_y_x_s)
+Mu_Y_S <- Mu_YX[1]
+Sig_Y_S <- sqrt(SigMat_YX[1,1])
 
 fopt <- optim(trueBetaRho, ComputeEfficientScore,
-              sData = sData, tData = tData, piVal = piVal, sData_ext = sData_ext, tDat_ext = tDat_ext,
-              coef_y_x_s = coef_y_x_s, sigma_y_x_s = sigma_y_x_s)
-fopt
+              sData = sData, tData = tData, piVal = piVal, tDat_ext = tDat_ext,
+              coef_y_x_s = coef_y_x_s, sigma_y_x_s = sigma_y_x_s, Mu_Y_S = Mu_Y_S, Sig_Y_S = Sig_Y_S)
+sdVec <- ComputeCovarianceMatrix(fopt$par, sData = sData, tData = tData, piVal = piVal, tDat_ext = tDat_ext,
+                                 coef_y_x_s = coef_y_x_s, sigma_y_x_s = sigma_y_x_s, Mu_Y_S = Mu_Y_S, Sig_Y_S = Sig_Y_S)
+
+(Cp1 <- (fopt$par[1]-1.96*sdVec[1] <= trueBetaRho[1] && fopt$par[1]+1.96*sdVec[1] >= trueBetaRho[1]))
+(Cp2 <- (fopt$par[2]-1.96*sdVec[2] <= trueBetaRho[2] && fopt$par[2]+1.96*sdVec[2] >= trueBetaRho[2]))
